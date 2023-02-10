@@ -80,8 +80,6 @@ def getGame(id):
 
     return data
 
-
-
 @app.route('/image')
 def image_endpoint():
   try:  
