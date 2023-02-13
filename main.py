@@ -106,9 +106,9 @@ def image_endpoint():
 
     # add the calender logo
     calender = Image.open('Date.png')
-    img.paste(calender, (70, 400), calender)
+    img.paste(calender, (70, 430), calender)
     timer = Image.open('Time.png')
-    img.paste(timer, (70, 500), timer)
+    img.paste(timer, (70, 530), timer)
     location = Image.open('Court.png')
     court = Image.open(requests.get(courtImage, stream=True).raw)
     court = court.resize((274, 273))
@@ -117,21 +117,23 @@ def image_endpoint():
     img.paste(game, (70, 180), game)
     micro = Image.open('MicroBanner.png')
     img.paste(micro, (850, 350), micro)
-    font = ImageFont.truetype('NexaDemo-Bold.ttf', 37)
+    font = ImageFont.truetype('NexaText-Trial-Bold.ttf', 37)
     text = vs if vs is not None else "6 v 6"
     text_width, text_height = draw.textsize(text, font)
     text_x = (micro.width - text_width) / 2 + 850
     text_y = (micro.height - text_height) / 2 + 340
+    # Nexa-Text Regular
+    
     draw.text((text_x, text_y), text, fill='white', font=font)
-    font = ImageFont.truetype('NexaDemo-Bold.ttf', 47)
+    font = ImageFont.truetype('NexaText-Trial-Regular.ttf', 37)
     if date is None:
         date = "Wed . Aug 21st"
-    draw.text((150, 397), date, fill='white', font=font)
-    font = ImageFont.truetype('NexaDemo-Bold.ttf', 47)
+    draw.text((150, 435), date, fill='white', font=font)
+    font = ImageFont.truetype('NexaText-Trial-Regular.ttf', 37)
 
     if time is None:
         time = "7:00 pm - 10:30 pm"
-    draw.text((150, 497), time, fill='white', font=font)
+    draw.text((150, 535), time, fill='white', font=font)
 
     if gameKind is None:
         gameKind = "Football"
