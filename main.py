@@ -35,6 +35,8 @@ def getGame(id):
     start_time = start_time.split("T")
     start_time = start_time[1]
     start_time = start_time.split(":")
+    # utc to ist
+
     start_time = start_time[0]+":"+start_time[1]
     end_time = end_time.split("T")
     end_time = end_time[1]
@@ -57,6 +59,10 @@ def getGame(id):
 
     # end_time should be in 12 hour format example 17:30 pm to 5:30 pm
     end_time = datetime.datetime.strptime(end_time, '%H:%M %p')
+
+    # convert from utc to ist
+    start_time = start_time + datetime.timedelta(hours=5, minutes=30)
+    end_time = end_time + datetime.timedelta(hours=5, minutes=30)
 
     time  = start_time.strftime('%I:%M %p') + " - " + end_time.strftime('%I:%M %p')
 
@@ -82,7 +88,7 @@ def getGame(id):
 
 @app.route('/image')
 def image_endpoint():
-  try:  
+#   try:  
     id = request.args.get('id')
     game = getGame(id)
     date = game['date']
@@ -144,8 +150,10 @@ def image_endpoint():
     response = make_response(open('image.jpeg', 'rb').read())
     response.headers.set('Content-Type', 'image/jpeg')
     return response
-  except:
-    return "error occured while generating the image"  
+#   except Exception as e:
+#     # line number and error message
+#     print(e)
+#     return "Error"
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0",debug=True)
