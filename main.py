@@ -131,15 +131,15 @@ def image_endpoint():
     # Nexa-Text Regular
     
     draw.text((text_x, text_y), text, fill='white', font=font)
-    font = ImageFont.truetype('NexaText-Trial-Regular.ttf', 37)
+    font = ImageFont.truetype('NexaText-Trial-Regular.ttf', 47)
     if date is None:
         date = "Wed . Aug 21st"
-    draw.text((150, 435), date, fill='white', font=font)
-    font = ImageFont.truetype('NexaText-Trial-Regular.ttf', 37)
+    draw.text((150, 428), date, fill='white', font=font)
+    font = ImageFont.truetype('NexaText-Trial-Regular.ttf', 47)
 
     if time is None:
         time = "7:00 pm - 10:30 pm"
-    draw.text((150, 535), time, fill='white', font=font)
+    draw.text((150, 528), time, fill='white', font=font)
 
     if gameKind is None:
         gameKind = "Football"
