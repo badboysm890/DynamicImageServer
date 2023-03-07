@@ -4,6 +4,7 @@ import os
 from flask_cors import CORS, cross_origin
 import requests
 import datetime
+import json
 
 
 app = Flask(__name__)
@@ -31,18 +32,14 @@ def getGame(id):
     date = date[0]
     date = date.split("-")
     date = date[2]+" . "+date[1]+" "+date[0]
-    # convert the time format from 2020-08-21T19:00:00.000Z to 7:00 pm - 10:30 pm
     start_time = start_time.split("T")
     start_time = start_time[1]
     start_time = start_time.split(":")
-    # utc to ist
-
     start_time = start_time[0]+":"+start_time[1]
     end_time = end_time.split("T")
     end_time = end_time[1]
     end_time = end_time.split(":")
     end_time = end_time[0]+":"+end_time[1]
-    # pick am or pm
     if int(start_time.split(":")[0]) < 12:
         start_time = start_time+" am"
     else:
@@ -88,7 +85,6 @@ def getGame(id):
 
 @app.route('/image')
 def image_endpoint():
-#   try:  
     id = request.args.get('id')
     game = getGame(id)
     date = game['date']
@@ -109,8 +105,6 @@ def image_endpoint():
     
     
     draw.text((70, 50), text, fill='white', font=font)
-
-    # add the calender logo
     calender = Image.open('Date.png')
     img.paste(calender, (70, 430), calender)
     timer = Image.open('Time.png')
@@ -150,10 +144,87 @@ def image_endpoint():
     response = make_response(open('image.jpeg', 'rb').read())
     response.headers.set('Content-Type', 'image/jpeg')
     return response
-#   except Exception as e:
-#     # line number and error message
-#     print(e)
-#     return "Error"
+
+def add_corners(im, rad):
+    circle = Image.new('L', (rad * 2, rad * 2), 0)
+    draw = ImageDraw.Draw(circle)
+    draw.ellipse((0, 0, rad * 2 - 1, rad * 2 - 1), fill=255)
+    alpha = Image.new('L', im.size, 255)
+    w, h = im.size
+    alpha.paste(circle.crop((0, 0, rad, rad)), (0, 0))
+    alpha.paste(circle.crop((0, rad, rad, rad * 2)), (0, h - rad))
+    alpha.paste(circle.crop((rad, 0, rad * 2, rad)), (w - rad, 0))
+    alpha.paste(circle.crop((rad, rad, rad * 2, rad * 2)), (w - rad, h - rad))
+    im.putalpha(alpha)
+    return im
+
+def getVenue(id):
+    url = "https://devstage.turftown.in/api/v3/venue/get_venue_info/"+id
+    payload={}
+    headers = {
+      'x-access-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlMDIwNjk4MTdmNTE3NmRmZmZhNmNmNSIsInBob25lIjoiOTM0NzYwMzAxMyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNjc3NzI2NjUyfQ.mOa7eq4jKRvOripCXh74kJFjCo8KVOngdGHPb2bDb9E'
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    # print(response.text)
+    # json parse and return
+    return json.loads(response.text)
+
+@app.route('/venue')
+def venue_endpoint():
+    id = request.args.get('id')
+    venue = getVenue(id)
+    spotlight_picture = venue['data']['venue']['spotlight_picture']
+    rating = venue['data']['ratings_and_reviews']['rating']
+    area = venue['data']['venue']['area']
+    address = venue['data']['venue']['address']
+    name = venue['data']['venue']['name']
+    print(spotlight_picture, rating, area, address, name)
+    img = Image.new('RGB', (1200, 630), color='white')
+    draw = ImageDraw.Draw(img)
+    bg = Image.open('venue/venueBG.png')
+    img.paste(bg, (0, 0))
+    text_line1 = "Check this"
+    text_line2 = "venue out on"
+    try:
+        font = ImageFont.truetype('Nexa-Trial-Heavy.ttf', 100)
+    except:
+        permission = oct(os.stat('Nexa/Commercial/Nexa_V2_2020/TTF/NexaDemo-Bold.ttf').st_mode)[-3:]
+        font = ImageFont.load_default()
+    draw.text((70, 90), text_line1, fill='white', font=font)
+    draw.text((70, 220), text_line2, fill='white', font=font)
+
+    # logo below the text turfLogo
+    turfLogo = Image.open('venue/turfLogo.png')
+    img.paste(turfLogo, (73, 390), turfLogo)
+
+    venueImage = Image.open(requests.get(spotlight_picture, stream=True).raw).convert("RGBA")
+    venueImage = venueImage.resize((320, 320))
+    venueImage = add_corners(venueImage, 50)
+    img.paste(venueImage, (800, 120), venueImage)
+
+    # add emptyRatingsBanner under the venueImage
+    emptyRatingsBanner = Image.open('venue/emptyRatingsBanner.png')
+    img.paste(emptyRatingsBanner, (820, 360), emptyRatingsBanner)
+
+    # add rating on the emptyRatingsBanner where ratings is two decimal points
+    rating  = float(rating)
+    rating = str(rating)
+    font = ImageFont.truetype('Nexa-Trial-Heavy.ttf', 60)
+    draw.text((890, 390), rating, fill='white', font=font)
+
+    # add StarVenue.png after the rating
+    starVenue = Image.open('venue/StarVenue.png')
+    img.paste(starVenue, (1000, 400), starVenue)
+
+    font = ImageFont.truetype('NexaText-Trial-Bold.ttf', 37)
+    text = name
+    img.save('venue/venue.jpeg')
+    response = make_response(open('venue/venue.jpeg', 'rb').read())
+    response.headers.set('Content-Type', 'image/jpeg')
+
+
+    return response
+    
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0",debug=True)
